@@ -1,0 +1,132 @@
+ <!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Избранное | StyleBox</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-100 text-gray-800">
+
+  <header class="bg-white shadow p-4 flex justify-between items-center relative z-10">
+    <h1 class="text-2xl font-bold text-indigo-600">StyleBox</h1>
+    <button id="burger-toggle" class="md:hidden text-indigo-600 text-2xl">☰</button>
+
+    <nav id="nav-menu" class="absolute top-full left-0 w-full bg-white shadow-md md:shadow-none md:static md:w-auto md:flex hidden md:items-center md:space-x-6 px-4 md:px-0 py-4 md:py-0">
+      <a href="index.html" class="block py-2 md:py-0 text-indigo-600 hover:underline">Главная</a>
+      <a href="cart.html" class="block py-2 md:py-0 text-indigo-600 hover:underline">Корзина</a>
+      <a href="favorites.html" class="block py-2 md:py-0 text-indigo-600 font-semibold underline">Избранное</a>
+      <a href="admin.html" class="block py-2 md:py-0 text-indigo-600 hover:underline">Админка</a>
+
+      <div class="relative md:static">
+        <button id="user-menu-button" class="block py-2 md:py-0 text-indigo-600 hover:underline w-full text-left md:text-center">
+          Войти
+        </button>
+        <div id="user-menu" class="hidden absolute bg-white border border-gray-200 rounded shadow-lg mt-1 right-0 w-44 z-50">
+          <a href="login.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Вход</a>
+          <a href="register.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Регистрация</a>
+          <a id="account-link" href="account.html" class="hidden px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Личный кабинет</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="flex-grow p-6">
+    <h2 class="text-2xl font-semibold mb-4">⭐ Избранные товары</h2>
+    <div id="favorites-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <!-- Товары появятся здесь -->
+    </div>
+    <p id="empty-message" class="text-gray-500 italic mt-4 hidden">Избранных товаров пока нет.</p>
+  </main>
+
+  <footer class="bg-white shadow p-4 text-center text-sm text-gray-500">
+    &copy; 2025 StyleBox. Все права защищены.
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggle = document.getElementById('burger-toggle');
+      const menu = document.getElementById('nav-menu');
+      const userBtn = document.getElementById('user-menu-button');
+      const userMenu = document.getElementById('user-menu');
+      const accountLink = document.getElementById('account-link');
+      const user = JSON.parse(localStorage.getItem('user'));
+
+      if (user && user.name && userBtn) {
+        userBtn.textContent = `Привет, ${user.name}`;
+        accountLink.classList.remove('hidden');
+      }
+
+      toggle.addEventListener('click', () => {
+        menu.classList.toggle('hidden');
+      });
+
+      document.querySelectorAll('#nav-menu a').forEach(link => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 768) {
+            menu.classList.add('hidden');
+          }
+        });
+      });
+
+      userBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userMenu.classList.toggle('hidden');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!userMenu.contains(e.target) && !userBtn.contains(e.target)) {
+          userMenu.classList.add('hidden');
+        }
+      });
+
+      const favoritesList = document.getElementById('favorites-list');
+      const emptyMessage = document.getElementById('empty-message');
+
+      function renderFavorites() {
+        const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        favoritesList.innerHTML = '';
+
+        if (favorites.length === 0) {
+          emptyMessage.classList.remove('hidden');
+          return;
+        }
+
+        emptyMessage.classList.add('hidden');
+
+        favorites.forEach((product, index) => {
+          const card = document.createElement('div');
+          card.className = 'bg-white rounded-lg shadow p-4 flex flex-col items-center';
+
+          card.innerHTML = `
+            <a href="product.html?id=${product.id}" class="block w-full max-w-[220px] mx-auto">
+              <img src="${product.images}" alt="${product.name}" class="w-full aspect-[3/4] object-cover rounded-md" />
+              <div class="mt-2 text-center">
+                <p class="text-sm text-gray-700 font-medium truncate">${product.name}</p>
+                <p class="text-indigo-600 font-bold text-sm">${product.price} ₸</p>
+              </div>
+            </a>
+            <button class="remove-btn mt-2 w-full bg-red-100 text-red-600 border border-red-300 hover:bg-red-200 transition text-sm py-1 rounded" data-index="${index}">
+              ❌ Удалить из избранного
+            </button>
+          `;
+
+          favoritesList.appendChild(card);
+        });
+
+        document.querySelectorAll('.remove-btn').forEach(button => {
+          button.addEventListener('click', () => {
+            const index = parseInt(button.dataset.index);
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            favorites.splice(index, 1);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            renderFavorites();
+          });
+        });
+      }
+
+      renderFavorites();
+    });
+  </script>
+</body>
+</html>
